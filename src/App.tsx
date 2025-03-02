@@ -1,24 +1,34 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
+import axios from 'axios';
+import MatchTable, { IMatch } from './MatchTable';
 
 function App() {
+  const [matches, setMatches] = useState<IMatch[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchMatches = async () => {
+    try {
+      const response = await axios.get('https://app.ftoyd.com/fronttemp-service/fronttemp');
+      setMatches(response.data.data.matches);
+    } catch (err) {
+      setError('Ошибка: не удалось загрузить информацию');
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchMatches();
+  }, []);
+
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <MatchTable matches={matches} fetchData={fetchMatches} error={error}/>
     </div>
   );
 }
